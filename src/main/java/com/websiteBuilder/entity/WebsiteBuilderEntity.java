@@ -13,7 +13,7 @@ public class WebsiteBuilderEntity {
 
     private String role;
 
-    @Column(length = 200)
+    @Column(length = 20000)
     private String content;
 
     private LocalDateTime createdAt;

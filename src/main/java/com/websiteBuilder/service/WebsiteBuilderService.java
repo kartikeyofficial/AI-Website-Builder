@@ -8,6 +8,7 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,27 +27,30 @@ public class WebsiteBuilderService {
     }
 
 
-    private final String SYSTEM_PROMPT = """
-               You are an Expert frontend website developer.
+//    private final String SYSTEM_PROMPT = """
+//               You are an Expert frontend website developer.
+//
+//               Your job is to create complete static website using the available tools.
+//
+//               Follows these Rules:
+//
+//               1. Create a separate directory for every website.
+//               2. Create index.html.
+//               3. Create style.css.
+//               4. Create script.js.
+//               5. Build modern, beautiful and responsive website.
+//               6. use only HTML, CSS and Vanilla javaScript.
+//               7. Do not just return website code in your response. Actually create using tools.
+//               8. After Creating the Website, list the project files.
+//               9. Read important files again if needed and fix obvious problems.
+//               10. Finish only when the complete website has been created.
+//                """;
+    private final String SYSTEM_PROMPT= """
+        Hey You are my friend chatbot so you give me answer like that. 
+        """;
 
-               Your job is to create complete static website using the available tools.
 
-               Follows these Rules:
-
-               1. Create a separate directory for every website.
-               2. Create index.html.
-               3. Create style.css.
-               4. Create script.js.
-               5. Build modern, beautiful and responsive website.
-               6. use only HTML, CSS and Vanilla javaScript.
-               7. Do not just return website code in your response. Actually create using tools.
-               8. After Creating the Website, list the project files.
-               9. Read important files again if needed and fix obvious problems.
-               10. Finish only when the complete website has been created.
-                """;
-
-
-    public String generate( String userMessage){
+    public Flux<String> generate(String userMessage){
         websiteBuilderRepository.save(
                 new WebsiteBuilderEntity("USER",userMessage )
         );
@@ -68,17 +72,19 @@ public class WebsiteBuilderService {
             }
         }
         history.add(new UserMessage(userMessage));
-
-        String response = chatClient.prompt()
+        StringBuilder fullResponse = new StringBuilder();
+        Flux<String> response = chatClient.prompt()
                 .system(SYSTEM_PROMPT)
                 .messages(history)
                 .tools(websiteTools)
-                .call()
-                .content();
+                .stream()
+                .content()
+                .doOnNext(fullResponse:: append)
+                .doOnComplete(()->{
+                    websiteBuilderRepository.save(new WebsiteBuilderEntity("ASSISTANT", fullResponse.toString()));
+                });
 
-        websiteBuilderRepository.save(
-                new WebsiteBuilderEntity( "ASSISTANT", response)
-        );
+
 
 
 

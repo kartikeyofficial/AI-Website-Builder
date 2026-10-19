@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import reactor.core.publisher.Flux;
 
 
 @RestController
@@ -20,7 +20,7 @@ public class WebsiteBuilderController {
     }
 
     @PostMapping()
-    public String chat(@RequestBody String message){
+    public Flux<String> chat(@RequestBody String message){
         return websiteBuilderService.generate(message);
     }
 }
