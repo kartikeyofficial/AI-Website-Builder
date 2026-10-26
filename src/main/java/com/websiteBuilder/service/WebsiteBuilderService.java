@@ -84,10 +84,6 @@ public class WebsiteBuilderService {
                     websiteBuilderRepository.save(new WebsiteBuilderEntity("ASSISTANT", fullResponse.toString()));
                 });
 
-
-
-
-
         return response;
     }
 }
